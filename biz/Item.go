@@ -45,3 +45,7 @@ func CheckItemOwner(ItemId, UId string) bool {
 func DeleteItem(item *mysql_model.Item) error {
 	return mysql.GetDBConn().Table("items").Delete(item).Error
 }
+
+func UpdateItem(item *mysql_model.Item) error {
+	return mysql.GetDBConn().Table("items").Where("id = ?", item.ID).UpdateColumns(item).Error
+}
