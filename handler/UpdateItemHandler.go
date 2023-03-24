@@ -65,13 +65,11 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 		ID:           item.ItemId,
 		Name:         item.GetName(),
 		Description:  item.GetDescription(),
-		Category:     item.GetCategory(),
 		Price:        item.GetPrice(),
 		Stock:        item.GetStock(),
 		Province:     item.GetProvince(),
 		City:         item.GetCity(),
 		District:     item.GetDistrict(),
-		UserID:       item.GetUserId(),
 		UserType:     item.GetUserType(),
 		SpecificAttr: item.GetSpecificAttributes(),
 	}

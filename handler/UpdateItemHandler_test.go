@@ -26,7 +26,7 @@ func TestUpdateItem(t *testing.T) {
 		Item: &product_core.ItemInfo{
 			ItemId:             int32(27),
 			Name:               "牛肉干",
-			Description:        "美味牛肉干，口感鲜美，量大管饱。",
+			Description:        "美味牛肉干，口感鲜美，量大123管饱。",
 			Category:           "cattle_product",
 			Price:              28.00,
 			Stock:              200,
