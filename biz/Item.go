@@ -22,7 +22,26 @@ func CheckCategoryAndRole(catagory, role string) bool {
 }
 
 func InsertItem(item *mysql_model.Item) error {
-
 	conn := mysql.GetDBConn()
 	return conn.Table("items").Create(item).Error
+}
+
+func CheckItemExsit(ItemId string) bool {
+	count := new(int64)
+	if mysql.GetDBConn().Table("items").Where("id = ?", ItemId).Count(count).Error != nil {
+		return false
+	}
+	return *count >= 1
+}
+
+func CheckItemOwner(ItemId, UId string) bool {
+	count := new(int64)
+	if mysql.GetDBConn().Table("items").Where("id = ?", ItemId).Where("user_id = ?", UId).Count(count).Error != nil {
+		return false
+	}
+	return *count == 1
+}
+
+func DeleteItem(item *mysql_model.Item) error {
+	return mysql.GetDBConn().Table("items").Delete(item).Error
 }
