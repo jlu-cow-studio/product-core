@@ -68,6 +68,10 @@ func (h *Handler) DeleteItem(ctx context.Context, req *product_core.DeleteItemRe
 		return
 	}
 
+	if err := biz.SendItemDeleteMsg(item.ToRedis()); err != nil {
+		log.Fatalln("send delete message failed! ", err)
+	}
+
 	res.Base.Message = ""
 	res.Base.Code = "200"
 	return

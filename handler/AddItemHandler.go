@@ -73,6 +73,10 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		return
 	}
 
+	if err := biz.SendItemCreateMsg(item.ToRedis()); err != nil {
+		log.Fatalln("send create message failed! ", err)
+	}
+
 	res.ItemId = item.ID
 	res.Base.Message = ""
 	res.Base.Code = "200"
