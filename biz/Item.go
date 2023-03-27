@@ -9,6 +9,7 @@ import (
 	"github.com/jlu-cow-studio/common/dal/mysql"
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
+	"github.com/jlu-cow-studio/common/model/mq_struct"
 	"github.com/segmentio/kafka-go"
 )
 
@@ -60,7 +61,55 @@ func UpdateItem(item *mysql_model.Item) error {
 func SendItemUpdateMsg(item *redis_model.Item) error {
 	writer := mq.GetWritter(mq.Topic_ItemChange)
 
-	val, err := json.Marshal(item)
+	updateItem := &mq_struct.ItemChangeMsg{
+		Op:   mq_struct.ItemOp_Update,
+		Info: item,
+	}
+	val, err := json.Marshal(updateItem)
+	if err != nil {
+		return nil
+	}
+
+	msg := kafka.Message{
+		Value: val,
+	}
+	err = writer.WriteMessages(context.Background(), msg)
+	if err != nil {
+		log.Fatal("failed to write messages:", err)
+	}
+	return err
+}
+
+func SendItemCreateMsg(item *redis_model.Item) error {
+	writer := mq.GetWritter(mq.Topic_ItemChange)
+
+	updateItem := &mq_struct.ItemChangeMsg{
+		Op:   mq_struct.ItemOp_Create,
+		Info: item,
+	}
+	val, err := json.Marshal(updateItem)
+	if err != nil {
+		return nil
+	}
+
+	msg := kafka.Message{
+		Value: val,
+	}
+	err = writer.WriteMessages(context.Background(), msg)
+	if err != nil {
+		log.Fatal("failed to write messages:", err)
+	}
+	return err
+}
+
+func SendItemDeleteMsg(item *redis_model.Item) error {
+	writer := mq.GetWritter(mq.Topic_ItemChange)
+
+	updateItem := &mq_struct.ItemChangeMsg{
+		Op:   mq_struct.ItemOp_Delete,
+		Info: item,
+	}
+	val, err := json.Marshal(updateItem)
 	if err != nil {
 		return nil
 	}
