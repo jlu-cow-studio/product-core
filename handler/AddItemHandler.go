@@ -12,7 +12,6 @@ import (
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/product-core/biz"
-	"github.com/sanity-io/litter"
 )
 
 func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (res *product_core.AddItemRes, err error) {
@@ -23,7 +22,7 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		},
 	}
 
-	log.Println(litter.Sdump(req))
+	log.Printf("[AddItem] request: %v", req)
 
 	// 获取 token
 	token := req.Base.Token
@@ -34,6 +33,7 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		log.Printf("[AddItem] Redis get token error: %v", cmd.Err())
 		return
 	}
+	log.Printf("[AddItem] Redis get token success, token: %s", token)
 
 	// 解析 token 中的用户信息
 	userInfo := new(redis_model.UserInfo)
@@ -43,6 +43,7 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		log.Printf("[AddItem] Unmarshal token error: %v", err)
 		return
 	}
+	log.Printf("[AddItem] Unmarshal token success, userinfo: %v", userInfo)
 
 	// 校验类别和角色匹配
 	if !biz.CheckCategoryAndRole(req.GetItemInfo().GetCategory(), userInfo.Role) {
@@ -51,6 +52,7 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		log.Printf("[AddItem] Category and role not match, category: %v, role: %v", req.GetItemInfo().GetCategory(), userInfo.Role)
 		return
 	}
+	log.Printf("[AddItem] CheckCategoryAndRole success, category: %s, role: %s", req.GetItemInfo().GetCategory(), userInfo.Role)
 
 	// 添加商品到数据库
 	itemInfo := req.GetItemInfo()
@@ -75,10 +77,12 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		log.Printf("[AddItem] Insert item error: %v", err)
 		return
 	}
+	log.Printf("[AddItem] Insert item success, item: %v", item)
 
 	if err := biz.SendItemCreateMsg(item.ToRedis()); err != nil {
-		log.Fatalln("send create message failed! ", err)
+		log.Fatalf("[AddItem] Send create message failed! error: %v", err)
 	}
+	log.Printf("[AddItem] Send create message success, item: %v", item)
 
 	res.ItemId = item.ID
 	res.Base.Message = ""
