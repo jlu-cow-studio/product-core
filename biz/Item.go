@@ -1,8 +1,15 @@
 package biz
 
 import (
+	"context"
+	"encoding/json"
+	"log"
+
+	"github.com/jlu-cow-studio/common/dal/mq"
 	"github.com/jlu-cow-studio/common/dal/mysql"
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
+	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
+	"github.com/segmentio/kafka-go"
 )
 
 func CheckCategoryAndRole(catagory, role string) bool {
@@ -48,4 +55,22 @@ func DeleteItem(item *mysql_model.Item) error {
 
 func UpdateItem(item *mysql_model.Item) error {
 	return mysql.GetDBConn().Table("items").Where("id = ?", item.ID).UpdateColumns(item).Error
+}
+
+func SendItemUpdateMsg(item *redis_model.Item) error {
+	writer := mq.GetWritter(mq.Topic_ItemChange)
+
+	val, err := json.Marshal(item)
+	if err != nil {
+		return nil
+	}
+
+	msg := kafka.Message{
+		Value: val,
+	}
+	err = writer.WriteMessages(context.Background(), msg)
+	if err != nil {
+		log.Fatal("failed to write messages:", err)
+	}
+	return err
 }

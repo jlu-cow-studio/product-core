@@ -81,6 +81,8 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 		return
 	}
 
+	biz.SendItemUpdateMsg(updateItem.ToRedis())
+
 	res.Base.Message = ""
 	res.Base.Code = "200"
 	return
