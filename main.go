@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 
+	"github.com/jlu-cow-studio/common/dal/mq"
 	"github.com/jlu-cow-studio/common/dal/mysql"
 	"github.com/jlu-cow-studio/common/dal/redis"
 	"github.com/jlu-cow-studio/common/dal/rpc/product_core"
@@ -22,6 +23,7 @@ func main() {
 	discovery.Init()
 	redis.Init()
 	mysql.Init()
+	mq.Init()
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
 	if err != nil {
