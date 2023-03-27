@@ -12,6 +12,7 @@ import (
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/product-core/biz"
+	"github.com/sanity-io/litter"
 )
 
 func (h *Handler) DeleteItem(ctx context.Context, req *product_core.DeleteItemReq) (res *product_core.DeleteItemRes, err error) {
@@ -21,6 +22,8 @@ func (h *Handler) DeleteItem(ctx context.Context, req *product_core.DeleteItemRe
 			Code:    "498",
 		},
 	}
+
+	log.Println(litter.Sdump(req))
 
 	// 获取 token
 	token := req.Base.Token

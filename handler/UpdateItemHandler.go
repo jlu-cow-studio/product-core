@@ -12,6 +12,7 @@ import (
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/product-core/biz"
+	"github.com/sanity-io/litter"
 )
 
 func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemReq) (res *product_core.UpdateItemRes, err error) {
@@ -22,6 +23,8 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 			Code:    "498",
 		},
 	}
+
+	log.Println(litter.Sdump(req))
 
 	// 获取 token
 	token := req.Base.Token
