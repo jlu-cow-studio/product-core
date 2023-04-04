@@ -30,9 +30,10 @@ func CheckCategoryAndRole(catagory, role string) bool {
 	}
 }
 
-func InsertItem(item *mysql_model.Item) error {
-	conn := mysql.GetDBConn()
-	return conn.Table("items").Create(item).Error
+func InsertItem(item *mysql_model.Item) *gorm.DB {
+	tx := mysql.GetDBConn().Begin()
+	tx.Table("items").Create(item)
+	return tx
 }
 
 func CheckItemExsit(ItemId string) bool {

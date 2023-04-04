@@ -21,7 +21,7 @@ func TestAddItem(t *testing.T) {
 	// 构造测试请求
 	req := &product_core.AddItemReq{
 		Base: &base.BaseReq{
-			Token: "84dd7f33-f145-4160-bbd7-8a84226f1783",
+			Token: "86f6ee13-8894-4a8d-b6b1-09bae106f895",
 		},
 		ItemInfo: &product_core.ItemInfo{
 			Name:               "牛肉干",
@@ -35,6 +35,14 @@ func TestAddItem(t *testing.T) {
 			UserId:             3,
 			UserType:           "service_provider",
 			SpecificAttributes: `{"产地": "湖南", "口味": "五香味", "保质期": "180天"}`,
+		},
+		TagList: []string{
+			"29",
+			"2",
+			"35",
+			"34",
+			"33",
+			"11",
 		},
 	}
 

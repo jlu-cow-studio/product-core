@@ -3,12 +3,15 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/jlu-cow-studio/common/dal/redis"
+	"github.com/jlu-cow-studio/common/dal/rpc"
 	"github.com/jlu-cow-studio/common/dal/rpc/base"
 	"github.com/jlu-cow-studio/common/dal/rpc/product_core"
+	"github.com/jlu-cow-studio/common/dal/rpc/tag_core"
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/product-core/biz"
@@ -71,18 +74,54 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 		SpecificAttr: itemInfo.GetSpecificAttributes(),
 	}
 
-	if err = biz.InsertItem(item); err != nil {
+	tx := biz.InsertItem(item)
+	if err = tx.Error; err != nil {
 		res.Base.Message = err.Error()
 		res.Base.Code = "403"
 		log.Printf("[AddItem] Insert item error: %v", err)
+		tx.Rollback()
 		return
 	}
 	log.Printf("[AddItem] Insert item success, item: %v", item)
 
 	if err := biz.SendItemCreateMsg(item.ToRedis()); err != nil {
 		log.Fatalf("[AddItem] Send create message failed! error: %v", err)
+		tx.Rollback()
 	}
 	log.Printf("[AddItem] Send create message success, item: %v", item)
+
+	conn, err := rpc.GetConn(TagCoreServiceName)
+	if err != nil {
+		log.Printf("get rpc conn error: %s\n", err.Error())
+		res.Base.Message = err.Error()
+		res.Base.Code = "405"
+		return
+	}
+
+	cli := tag_core.NewTagCoreServiceClient(conn)
+
+	tagUpdateItemTagsReq := &tag_core.UpdateItemTagsRequest{
+		Base:    req.Base,
+		TagList: req.TagList,
+		ItemId:  strconv.FormatInt(int64(item.ID), 10),
+	}
+
+	tagUpdateItemTagsRes, err := cli.UpdateItemTags(ctx, tagUpdateItemTagsReq)
+	if err != nil {
+		res.Base.Message = fmt.Sprintf("error when update tag list: %v", err.Error())
+		res.Base.Code = "406"
+		tx.Rollback()
+		return res, nil
+	}
+
+	if tagUpdateItemTagsRes.Base.Code != "200" {
+		res.Base.Message = fmt.Sprintf("error when update tag list %v, %v", tagUpdateItemTagsRes.Base.Code, tagUpdateItemTagsRes.Base.Message)
+		res.Base.Code = "407"
+		tx.Rollback()
+		return res, nil
+	}
+
+	tx.Commit()
 
 	res.ItemId = item.ID
 	res.Base.Message = ""

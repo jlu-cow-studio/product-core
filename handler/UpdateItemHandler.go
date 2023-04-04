@@ -111,7 +111,6 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 		ItemId:  strconv.FormatInt(int64(req.Item.ItemId), 10),
 	}
 
-	litter.Dump(tagUpdateItemTagsReq)
 	tagUpdateItemTagsRes, err := cli.UpdateItemTags(ctx, tagUpdateItemTagsReq)
 	if err != nil {
 		res.Base.Message = fmt.Sprintf("error when update tag list: %v", err.Error())
