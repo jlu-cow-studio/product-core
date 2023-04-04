@@ -11,6 +11,7 @@ import (
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/common/model/mq_struct"
 	"github.com/segmentio/kafka-go"
+	"gorm.io/gorm"
 )
 
 func CheckCategoryAndRole(catagory, role string) bool {
@@ -54,8 +55,10 @@ func DeleteItem(item *mysql_model.Item) error {
 	return mysql.GetDBConn().Table("items").Delete(item).Error
 }
 
-func UpdateItem(item *mysql_model.Item) error {
-	return mysql.GetDBConn().Table("items").Where("id = ?", item.ID).UpdateColumns(item).Error
+func UpdateItem(item *mysql_model.Item) *gorm.DB {
+	tx := mysql.GetDBConn().Begin()
+	tx.Table("items").Where("id = ?", item.ID).UpdateColumns(item)
+	return tx
 }
 
 func SendItemUpdateMsg(item *redis_model.Item) error {

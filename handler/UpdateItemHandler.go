@@ -3,17 +3,22 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/jlu-cow-studio/common/dal/redis"
+	"github.com/jlu-cow-studio/common/dal/rpc"
 	"github.com/jlu-cow-studio/common/dal/rpc/base"
 	"github.com/jlu-cow-studio/common/dal/rpc/product_core"
+	"github.com/jlu-cow-studio/common/dal/rpc/tag_core"
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/product-core/biz"
 	"github.com/sanity-io/litter"
 )
+
+const TagCoreServiceName = "cowstudio/tag-core"
 
 func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemReq) (res *product_core.UpdateItemRes, err error) {
 
@@ -77,8 +82,9 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 		SpecificAttr: item.GetSpecificAttributes(),
 	}
 
-	if err = biz.UpdateItem(updateItem); err != nil {
-		res.Base.Message = err.Error()
+	tx := biz.UpdateItem(updateItem)
+	if tx.Error != nil {
+		res.Base.Message = tx.Error.Error()
 		res.Base.Code = "404" // 修改状态码
 		log.Printf("[DeleteItem] update item error: %v", err)
 		return
@@ -86,7 +92,42 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 
 	if err := biz.SendItemUpdateMsg(updateItem.ToRedis()); err != nil {
 		log.Fatalln("send update message failed! ", err)
+		tx.Rollback()
 	}
+
+	conn, err := rpc.GetConn(TagCoreServiceName)
+	if err != nil {
+		log.Printf("get rpc conn error: %s\n", err.Error())
+		res.Base.Message = err.Error()
+		res.Base.Code = "405"
+		return
+	}
+
+	cli := tag_core.NewTagCoreServiceClient(conn)
+
+	tagUpdateItemTagsReq := &tag_core.UpdateItemTagsRequest{
+		Base:    req.Base,
+		TagList: req.TagList,
+		ItemId:  strconv.FormatInt(int64(req.Item.ItemId), 10),
+	}
+
+	litter.Dump(tagUpdateItemTagsReq)
+	tagUpdateItemTagsRes, err := cli.UpdateItemTags(ctx, tagUpdateItemTagsReq)
+	if err != nil {
+		res.Base.Message = fmt.Sprintf("error when update tag list: %v", err.Error())
+		res.Base.Code = "406"
+		tx.Rollback()
+		return res, nil
+	}
+
+	if tagUpdateItemTagsRes.Base.Code != "200" {
+		res.Base.Message = fmt.Sprintf("error when update tag list %v, %v", tagUpdateItemTagsRes.Base.Code, tagUpdateItemTagsRes.Base.Message)
+		res.Base.Code = "407"
+		tx.Rollback()
+		return res, nil
+	}
+
+	tx.Commit()
 
 	res.Base.Message = ""
 	res.Base.Code = "200"

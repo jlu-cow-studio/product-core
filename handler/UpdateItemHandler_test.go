@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/jlu-cow-studio/common/dal/mq"
 	"github.com/jlu-cow-studio/common/dal/mysql"
 	"github.com/jlu-cow-studio/common/dal/redis"
 	"github.com/jlu-cow-studio/common/dal/rpc/base"
@@ -18,10 +19,11 @@ func TestUpdateItem(t *testing.T) {
 	discovery.Init()
 	redis.Init()
 	mysql.Init()
+	mq.Init()
 	// 构造请求对象
 	req := &product_core.UpdateItemReq{
 		Base: &base.BaseReq{
-			Token: "84dd7f33-f145-4160-bbd7-8a84226f1783",
+			Token: "86f6ee13-8894-4a8d-b6b1-09bae106f895",
 		},
 		Item: &product_core.ItemInfo{
 			ItemId:             int32(27),
@@ -36,6 +38,14 @@ func TestUpdateItem(t *testing.T) {
 			UserId:             3,
 			UserType:           "service_provider",
 			SpecificAttributes: `{"产地": "湖南", "口味": "五香味", "保质期": "180天"}`,
+		},
+		TagList: []string{
+			"29",
+			"2",
+			"35",
+			"34",
+			"33",
+			"11",
 		},
 	}
 
