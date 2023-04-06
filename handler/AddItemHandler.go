@@ -90,15 +90,13 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 	}
 	log.Printf("[AddItem] Send create message success, item: %v", item)
 
-	conn, err := rpc.GetConn(TagCoreServiceName)
+	cli, err := rpc.GetTagCoreCli()
 	if err != nil {
 		log.Printf("get rpc conn error: %s\n", err.Error())
 		res.Base.Message = err.Error()
 		res.Base.Code = "405"
 		return
 	}
-
-	cli := tag_core.NewTagCoreServiceClient(conn)
 
 	tagUpdateItemTagsReq := &tag_core.UpdateItemTagsRequest{
 		Base:    req.Base,

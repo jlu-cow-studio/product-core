@@ -3,7 +3,7 @@ module github.com/jlu-cow-studio/product-core
 go 1.17
 
 require (
-	github.com/jlu-cow-studio/common v0.2.95
+	github.com/jlu-cow-studio/common v0.2.102
 	google.golang.org/grpc v1.54.0
 )
 
@@ -12,6 +12,7 @@ require github.com/stretchr/testify v1.8.1
 require (
 	github.com/sanity-io/litter v1.5.5
 	github.com/segmentio/kafka-go v0.4.39
+	gorm.io/gorm v1.24.6
 )
 
 require (
@@ -46,5 +47,4 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/mysql v1.4.7 // indirect
-	gorm.io/gorm v1.24.6 // indirect
 )
