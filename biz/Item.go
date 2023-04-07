@@ -155,3 +155,24 @@ func CheckFavoriteAdded(userId, itemId string) (bool, error) {
 
 	return *count == 1, tx.Error
 }
+
+func SendAddFavoriteMsg(ctx context.Context, userId, itemId string) error {
+
+	return mq.SendMessage(ctx, mq.Topic_UserAction, &mq_struct.UserActionMsg{
+		Op: mq_struct.UserActionOp_AddFavorite,
+		Extra: map[string]string{
+			mq_struct.UserActionExtraKey_ItemId: itemId,
+			mq_struct.UserActionExtraKey_UserId: userId,
+		},
+	})
+}
+func SendDelFavoriteMsg(ctx context.Context, userId, itemId string) error {
+
+	return mq.SendMessage(ctx, mq.Topic_UserAction, &mq_struct.UserActionMsg{
+		Op: mq_struct.UserActionOp_DelFavorite,
+		Extra: map[string]string{
+			mq_struct.UserActionExtraKey_ItemId: itemId,
+			mq_struct.UserActionExtraKey_UserId: userId,
+		},
+	})
+}

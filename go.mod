@@ -3,7 +3,7 @@ module github.com/jlu-cow-studio/product-core
 go 1.17
 
 require (
-	github.com/jlu-cow-studio/common v0.2.110
+	github.com/jlu-cow-studio/common v0.2.113
 	google.golang.org/grpc v1.54.0
 )
 

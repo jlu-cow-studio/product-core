@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"strconv"
 
 	"github.com/jlu-cow-studio/common/dal/redis"
@@ -50,6 +51,11 @@ func (h *Handler) AddFavorite(ctx context.Context, req *product_core.AddFavorite
 			res.Base.Code = "405"
 			return res, nil
 		}
+
+		if err = biz.SendAddFavoriteMsg(ctx, info.Uid, strconv.Itoa(int(req.ItemId))); err != nil {
+			log.Println("error when sending add favorite message!", err, info.Uid, req.ItemId)
+		}
+
 	} else if req.Action == item.AddFovoriteAction_Del {
 		if ok, err := biz.CheckFavoriteAdded(info.Uid, strconv.Itoa(int(req.ItemId))); err != nil {
 			res.Base.Message = err.Error()
@@ -63,6 +69,10 @@ func (h *Handler) AddFavorite(ctx context.Context, req *product_core.AddFavorite
 			res.Base.Message = err.Error()
 			res.Base.Code = "408"
 			return res, nil
+		}
+
+		if err = biz.SendDelFavoriteMsg(ctx, info.Uid, strconv.Itoa(int(req.ItemId))); err != nil {
+			log.Println("error when sending del favorite message!", err, info.Uid, req.ItemId)
 		}
 	} else {
 		res.Base.Message = "unknown action"
