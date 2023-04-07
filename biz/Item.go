@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/jlu-cow-studio/common/dal/mq"
 	"github.com/jlu-cow-studio/common/dal/mysql"
@@ -126,4 +127,31 @@ func SendItemDeleteMsg(item *redis_model.Item) error {
 		log.Fatal("failed to write messages:", err)
 	}
 	return err
+}
+
+func AddFavorite(userId, itemId string) error {
+
+	return mysql.GetDBConn().Table("user_item_follow").Create(&struct {
+		UserId   string    `gorm:"column:user_id"`
+		ItemId   string    `gorm:"column:item_id"`
+		CreateAt time.Time `gorm:"create_at"`
+	}{
+		UserId:   userId,
+		ItemId:   itemId,
+		CreateAt: time.Now(),
+	}).Error
+}
+
+func DelFavorite(userId, itemId string) error {
+
+	return mysql.GetDBConn().Table("user_item_follow").Delete(nil, "user_id = ? and item_id = ?").Error
+}
+
+func CheckFavoriteAdded(userId, itemId string) (bool, error) {
+
+	count := new(int64)
+
+	tx := mysql.GetDBConn().Table("user_item_follow").Where("user_id = ? and item_id = ?", userId, itemId).Count(count)
+
+	return *count == 1, tx.Error
 }
