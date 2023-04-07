@@ -84,7 +84,7 @@ func (h *Handler) AddItem(ctx context.Context, req *product_core.AddItemReq) (re
 	}
 	log.Printf("[AddItem] Insert item success, item: %v", item)
 
-	if err := biz.SendItemCreateMsg(item.ToRedis()); err != nil {
+	if err := biz.SendItemCreateMsg(ctx, item.ToRedis()); err != nil {
 		log.Fatalf("[AddItem] Send create message failed! error: %v", err)
 		tx.Rollback()
 	}

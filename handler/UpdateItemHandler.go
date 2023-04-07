@@ -88,7 +88,7 @@ func (h *Handler) UpdateItem(ctx context.Context, req *product_core.UpdateItemRe
 		return
 	}
 
-	if err := biz.SendItemUpdateMsg(updateItem.ToRedis()); err != nil {
+	if err := biz.SendItemUpdateMsg(ctx, updateItem.ToRedis()); err != nil {
 		log.Fatalln("send update message failed! ", err)
 		tx.Rollback()
 	}

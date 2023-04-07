@@ -2,7 +2,6 @@ package biz
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	mysql_model "github.com/jlu-cow-studio/common/model/dao_struct/mysql"
 	redis_model "github.com/jlu-cow-studio/common/model/dao_struct/redis"
 	"github.com/jlu-cow-studio/common/model/mq_struct"
-	"github.com/segmentio/kafka-go"
 	"gorm.io/gorm"
 )
 
@@ -63,67 +61,32 @@ func UpdateItem(item *mysql_model.Item) *gorm.DB {
 	return tx
 }
 
-func SendItemUpdateMsg(item *redis_model.Item) error {
-	writer := mq.GetWritter(mq.Topic_ItemChange)
-
-	updateItem := &mq_struct.ItemChangeMsg{
+func SendItemUpdateMsg(ctx context.Context, item *redis_model.Item) (err error) {
+	if err = mq.SendMessage(ctx, mq.Topic_ItemChange, &mq_struct.ItemChangeMsg{
 		Op:   mq_struct.ItemOp_Update,
 		Info: item,
-	}
-	val, err := json.Marshal(updateItem)
-	if err != nil {
-		return nil
-	}
-
-	msg := kafka.Message{
-		Value: val,
-	}
-	err = writer.WriteMessages(context.Background(), msg)
-	if err != nil {
+	}); err != nil {
 		log.Fatal("failed to write messages:", err)
 	}
 	return err
 }
 
-func SendItemCreateMsg(item *redis_model.Item) error {
-	writer := mq.GetWritter(mq.Topic_ItemChange)
+func SendItemCreateMsg(ctx context.Context, item *redis_model.Item) (err error) {
 
-	updateItem := &mq_struct.ItemChangeMsg{
+	if err = mq.SendMessage(ctx, mq.Topic_ItemChange, &mq_struct.ItemChangeMsg{
 		Op:   mq_struct.ItemOp_Create,
 		Info: item,
-	}
-	val, err := json.Marshal(updateItem)
-	if err != nil {
-		return nil
-	}
-
-	msg := kafka.Message{
-		Value: val,
-	}
-	err = writer.WriteMessages(context.Background(), msg)
-	if err != nil {
+	}); err != nil {
 		log.Fatal("failed to write messages:", err)
 	}
 	return err
 }
 
-func SendItemDeleteMsg(item *redis_model.Item) error {
-	writer := mq.GetWritter(mq.Topic_ItemChange)
-
-	updateItem := &mq_struct.ItemChangeMsg{
+func SendItemDeleteMsg(ctx context.Context, item *redis_model.Item) (err error) {
+	if err = mq.SendMessage(ctx, mq.Topic_ItemChange, &mq_struct.ItemChangeMsg{
 		Op:   mq_struct.ItemOp_Delete,
 		Info: item,
-	}
-	val, err := json.Marshal(updateItem)
-	if err != nil {
-		return nil
-	}
-
-	msg := kafka.Message{
-		Value: val,
-	}
-	err = writer.WriteMessages(context.Background(), msg)
-	if err != nil {
+	}); err != nil {
 		log.Fatal("failed to write messages:", err)
 	}
 	return err
